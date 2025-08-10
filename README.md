@@ -35,6 +35,11 @@ Test developer stats command
 - **Markdown Export**
   - Generate markdown summaries for easy AI prompt integration.
   - Export to file, register, or a new buffer
+- **Flexible File Browsing**
+  - Built-in file browsing with vim.ui.select
+  - Optional Telescope extension for enhanced picker experience
+  - Modular picker system - integrate with any picker you prefer
+  - Browse snapshots, attention items, epics, and user stats
 
 ---
 
@@ -43,15 +48,15 @@ Test developer stats command
 - [x] Basic sprint and epic summaries
 - [x] Markdown output for AI consumption
 - [x] Replace Jira CLI with direct API/JQL queries
-- [ ] Stale ticket detection and highlighting
+- [x] Stale ticket detection and highlighting
 - [ ] Sprint carryover ticket identification
-- [ ] QA bounce/stuck ticket detection
-- [ ] Per-developer workload and velocity stats
-- [ ] Blocked/flagged ticket reporting
-- [ ] Custom JQL and saved filter support
-- [ ] Recent comments and mentions summary
-- [ ] Configurable thresholds (e.g., stale days, QA bounce count)
+- [x] QA bounce/stuck ticket detection
+- [x] Per-developer workload and velocity stats
+- [x] Blocked/flagged ticket reporting
+- [x] Recent comments and mentions summary
+- [x] Configurable thresholds (e.g., stale days, QA bounce count)
 - [ ] Batch API calls for performance
 - [ ] (Future) Sprint forecasting and advanced analytics (AI-powered)
 - [ ] (Future) Considering github activity as part of staleness/activity considerations
-- [ ] (Future, only if needed) Use a local sqlite DB or an in-memory cache to store Jira data for faster access and reduced API calls.
+- [x] (Future, only if needed) Use a local sqlite DB or an in-memory cache to store Jira data for faster access and reduced API calls.
+  - Introduced json caching to speed up repeated queries

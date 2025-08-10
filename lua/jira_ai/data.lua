@@ -193,9 +193,13 @@ function M.get_all_users(callback)
 end
 
 function M.get_active_sprint(project, callback)
-	-- Try to get boards from cache asynchronously
-	local cache = require("jira_ai.cache").read_cache()
-	local boards = cache and cache.boards or {}
+	-- Try to get boards from cache asynchronously (lazy load to avoid circular dependency)
+	local cache_data = nil
+	local cache_ok, cache_module = pcall(require, "jira_ai.cache")
+	if cache_ok then
+		cache_data = cache_module.read_cache()
+	end
+	local boards = cache_data and cache_data.boards or {}
 
 	local function handle_board(board_id)
 		jira_api_request_async(

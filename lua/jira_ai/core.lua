@@ -1,4 +1,6 @@
 local service = require("jira_ai.service")
+local data = require("jira_ai.data")
+local utils = require("jira_ai.utils")
 local transform = require("jira_ai.transform")
 local markdown = require("jira_ai.markdown")
 local output = require("jira_ai.output")
@@ -26,7 +28,7 @@ end
 function M.sprint_snapshot()
 	local config = require("jira_ai.config").options
 
-	service.get_projects(function(projects)
+	utils.get_configured_projects(function(projects)
 		service.get_current_sprints(function(current_sprints)
 			for _, project in ipairs(projects) do
 				is_kanban(project, function(is_kanban_result)
@@ -45,7 +47,7 @@ function M.sprint_snapshot()
 						jql = string.format("project=%s", project)
 					end
 					if jql then
-						service.get_issues_with_changelogs(jql, function(raw_issues)
+						data.get_issues_with_changelogs(jql, function(raw_issues)
 							for _, raw in ipairs(raw_issues) do
 								local status = raw.fields.status and raw.fields.status.name or ""
 								if not should_always_ignore(status) then
@@ -78,7 +80,7 @@ function M.sprint_snapshot()
 									issues_by_assignee = issues_by_assignee,
 									unassigned_issues = unassigned_issues,
 								}
-								output.buffer_handler(markdown.sprint_snapshot(snapshot_data), project)
+								output.output_handler(markdown.sprint_snapshot(snapshot_data), "snapshots", project)
 							end)
 						end)
 					end
@@ -91,7 +93,7 @@ end
 function M.attention_items()
 	local config = require("jira_ai.config").options
 
-	service.get_projects(function(projects)
+	utils.get_configured_projects(function(projects)
 		service.get_current_sprints(function(current_sprints)
 			for _, project in ipairs(projects) do
 				is_kanban(project, function(is_kanban_result)
@@ -108,7 +110,7 @@ function M.attention_items()
 						end
 					end
 					if jql then
-						service.get_issues_with_changelogs(jql, function(raw_issues)
+						data.get_issues_with_changelogs(jql, function(raw_issues)
 							for _, raw in ipairs(raw_issues) do
 								local status = raw.fields.status and raw.fields.status.name or ""
 								if not should_always_ignore(status) then
@@ -121,7 +123,11 @@ function M.attention_items()
 							end
 							local filtered_issues = transform.filter_ignored_users(issues, config.ignored_users)
 							local attention = transform.find_attention_issues(filtered_issues, config)
-							output.buffer_handler(markdown.attention_items({ attention = attention }), project)
+							output.output_handler(
+								markdown.attention_items({ attention = attention }),
+								"needs-attention",
+								project
+							)
 						end)
 					end
 				end)
@@ -131,7 +137,7 @@ function M.attention_items()
 end
 
 function M.epic_story_map(epic_key)
-	service.get_projects(function(projects)
+	utils.get_configured_projects(function(projects)
 		service.get_epics(function(epics_by_project)
 			for _, project in ipairs(projects) do
 				local epics = epics_by_project[project] or {}
@@ -139,12 +145,16 @@ function M.epic_story_map(epic_key)
 					if raw_epic.key == epic_key then
 						local epic = transform.clean_epic(raw_epic)
 						local jql = string.format('cf[10008]="%s"', epic_key)
-						service.get_issues_with_changelogs(jql, function(raw_issues)
+						data.get_issues_with_changelogs(jql, function(raw_issues)
 							local issues = {}
 							local function handle_issue(idx)
 								if idx > #raw_issues then
 									epic.stories = transform.build_story_tree(issues, epic_key)
-									output.buffer_handler(markdown.epic_story_map({ epics = { epic } }), project)
+									output.output_handler(
+										markdown.epic_story_map({ epics = { epic } }),
+										"epic-maps",
+										project
+									)
 									return
 								end
 								local raw = raw_issues[idx]
@@ -165,13 +175,13 @@ function M.epic_story_map(epic_key)
 end
 
 function M.user_stats(user_name)
-	service.get_projects(function(projects)
+	utils.get_configured_projects(function(projects)
 		local all_issues = {}
 		local all_changelogs = {}
 		local function process_project(idx)
 			if idx > #projects then
 				local users_stats = transform.summarize_user_stats(all_issues, all_changelogs)
-				output.buffer_handler(markdown.user_stats({ users = users_stats }), "JiraAI-UserStats-" .. user_name)
+				output.output_handler(markdown.user_stats({ users = users_stats }), "user-stats", user_name)
 				return
 			end
 			local project = projects[idx]
@@ -186,7 +196,7 @@ function M.user_stats(user_name)
 					local sprint_obj = sprint
 					if sprint_obj then
 						local jql = string.format("Sprint=%d", sprint_obj.id)
-						service.get_issues_with_changelogs(jql, function(raw_issues)
+						data.get_issues_with_changelogs(jql, function(raw_issues)
 							local function handle_issue(iidx)
 								if iidx > #raw_issues then
 									process_sprint(sidx + 1)

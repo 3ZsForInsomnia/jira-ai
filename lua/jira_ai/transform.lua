@@ -99,9 +99,15 @@ function M.clean_issue(raw, changelog)
 end
 
 function M.clean_epic(raw)
+	if not raw or not raw.fields then
+		return {
+			key = raw and raw.key or "UNKNOWN",
+			summary = "Epic data unavailable",
+		}
+	end
 	return {
 		key = raw.key,
-		summary = safe_field(raw.fields.summary),
+		summary = safe_field(raw.fields.summary) or "No summary",
 	}
 end
 

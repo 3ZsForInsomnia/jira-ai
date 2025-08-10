@@ -6,11 +6,12 @@ M.defaults = {
 	stuck_threshold_days = 3, -- in days
 	qa_bounce_threshold = 3,
 	stale_days = 3, -- days before marking as stale
-	sprint_lookback = 3, -- in sprints
+	sprint_lookback = 5, -- in sprints
 	file_name_format = "%s/%s-%s.md", -- dir, project, timestamp
 	output_dir = nil, -- if set, overrides XDG
-	cache_dir = nil, -- if set, overrides XDG
-	header_template = string.rep("=", 60) .. "\nJira AI summary for project: %s\n" .. string.rep("=", 60) .. "\n",
+	cache_dir = nil, -- if set, overrides XDG (uses STATE_HOME for cache)
+	log_level = "WARN", -- "ERROR", "WARN", "INFO"
+	header_template = "# Jira AI Summary for Project: %s\n\n",
 	notify = true,
 	default_register = '"', -- Default register for yank (unnamed register)
 	jira_api_token = nil,

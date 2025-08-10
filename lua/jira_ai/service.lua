@@ -1,4 +1,5 @@
 local cache = require("jira_ai.cache")
+local data = require("jira_ai.data")
 local os_time = os.time
 
 local M = {}
@@ -24,14 +25,6 @@ local function cache_is_fresh(group)
 			sec = last:sub(18, 19),
 		})
 	) < ttl
-end
-
-function M.get_issues_for_sprint(sprint_id)
-	return require("jira_ai.data").get_issues_for_sprint(sprint_id)
-end
-
-function M.get_board_issues(project)
-	return require("jira_ai.data").get_board_issues(project)
 end
 
 function M.get_projects(callback)
@@ -82,6 +75,10 @@ function M.get_current_sprints(callback)
 	else
 		callback(cache.get_current_sprints())
 	end
+end
+
+function M.get_issue_changelog(issue_key, callback)
+	data.get_issue_changelog(issue_key, callback)
 end
 
 return M
